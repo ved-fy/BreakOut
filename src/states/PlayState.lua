@@ -2,25 +2,16 @@
 PlayState = Class{__includes = BaseState}
 
 -- Initialize paddle
-function PlayState:init()
-    -- Spawn paddle
-    self.paddle = Paddle()
+function PlayState:enter(params)
+    self.paddle = params.paddle
+    self.ball = params.ball
+    self.bricks = params.bricks
+    self.health = params.health
+    self.score = params.score
 
-    -- Spawn ball
-    self.ball = Ball(1)
-
-    -- Give ball random velocity
-    self.ball.dx = math.random(-100, 100)
-    self.ball.dy = math.random(50, 100)
-
-    -- Give ball position in center
-    self.ball.x = VIRTUAL_WIDTH / 2 - 4
-    self.ball.y = VIRTUAL_HEIGHT - 42
-
-    self.pause = false
-
-    -- use the "static" createMao functin to generate bricks
-    self.bricks = LevelMaker.createMap()
+    -- Give ball random starting vellocity
+    self.ball.dx = math.random(-200, 200)
+    self.ball.dy = math.random(-50, -60)
 end
 
 function PlayState:update(dt)
@@ -48,8 +39,7 @@ function PlayState:update(dt)
         self.ball.y= self.paddle.y - 8
         self.ball.dy = - self.ball.dy
 
-         -- Tweak angle of bounce based on collision on paddle
-
+        -- Tweak angle of bounce based on collision on paddle
         -- If we hit the paddle on the left side while we are moving towards left
         if self.ball.x < self.ball.x + (self.paddle.width / 2) and self.paddle.dx < 0 then
         self.ball.dx = -50 + -(8 * math.abs(self.paddle.x + self.paddle.width / 2 - self.ball.x))
@@ -63,12 +53,14 @@ function PlayState:update(dt)
         gSounds['wall-hit']:play()
     end
 
-   
-
     -- Detect collision across all bricks with the ball
     for k, brick in pairs(self.bricks) do
         -- Only check collision if we are in play
         if brick.inPlay and self.ball:collides(brick) then
+
+            -- Add to score
+            self.score = self.score + (brick.tier * 200 + brick.color * 25)
+            
             -- Trigger bricks hit function
             brick:hit()
 
@@ -102,6 +94,25 @@ function PlayState:update(dt)
             self.ball.dy = self.ball.dy * 1.02
             -- Only allow colliding with 1 brick    
             break
+        end
+    end
+
+    -- If ball goes below bounds, revert to serve state and decrease health
+    if self.ball.y >= VIRTUAL_HEIGHT then
+        self.health = self.health - 1
+        gSounds['hurt']:play()
+
+        if self.health == 0 then
+            gStateMachine:change('game-over', {
+                score = self.score
+            })
+        else
+            gStateMachine:change('serve', {
+                paddle = self.paddle,
+                bricks = self.bricks,
+                health = self.health,
+                score = self.score
+            })
         end
     end
 

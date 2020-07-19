@@ -1,6 +1,6 @@
 Paddle = Class{}
 
-function Paddle:init()
+function Paddle:init(skin)
     self.x = VIRTUAL_WIDTH / 2 - 32;
     self.y = VIRTUAL_HEIGHT - 32
 
@@ -13,7 +13,7 @@ function Paddle:init()
 
     -- Skin is used to change the color of the paddle and offset us to the
     -- gPaddle skins
-    self.skin = 1
+    self.skin = skin
 
     -- The size varient; default 2
     self.size = 2

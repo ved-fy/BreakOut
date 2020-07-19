@@ -18,14 +18,16 @@ function StartState:update(dt)
         if highlighted == 1 then
             gStateMachine:change('serve', {
                 paddle = Paddle(1),
-                bricks = LevelMaker.createMap(),
+                bricks = LevelMaker.createMap(5),
                 health = 3,
                 score = 0
             })
+        end
 
-    -- We no longer have this gloabaly so included here
-    if love.keyboard.wasPressed('escape') then
-        love.event.quit()
+        -- We no longer have this gloabaly so included here
+        if love.keyboard.wasPressed('escape') then
+            love.event.quit()
+        end
     end
 end 
 

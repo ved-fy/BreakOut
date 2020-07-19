@@ -81,8 +81,10 @@ function GenerateQuadsBalls(atlas)
     y = 56
 
     -- Getting second row
-    for i = 0, 3 do
+    for i = 0, 2 do
         quads[counter] = love.graphics.newQuad(x, y, 8, 8, atlas:getDimensions())
+        x = x + 8
+        counter = counter + 1
     end
 
     return quads
