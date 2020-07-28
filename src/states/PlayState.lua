@@ -36,21 +36,21 @@ function PlayState:update(dt)
 
     -- Check for collision with paddle
     if self.ball:collides(self.paddle) then
-        self.ball.y= self.paddle.y - 8
-        self.ball.dy = - self.ball.dy
+        self.ball.y = self.paddle.y - 8
+        self.ball.dy = -self.ball.dy
 
         -- Tweak angle of bounce based on collision on paddle
         -- If we hit the paddle on the left side while we are moving towards left
-        if self.ball.x < self.ball.x + (self.paddle.width / 2) and self.paddle.dx < 0 then
-        self.ball.dx = -50 + -(8 * math.abs(self.paddle.x + self.paddle.width / 2 - self.ball.x))
-        
+        if self.ball.x < self.paddle.x + (self.paddle.width / 2) and self.paddle.dx < 0 then
+            self.ball.dx = -50 + -(8 * (self.paddle.x + self.paddle.width / 2 - self.ball.x))
+
         -- Else if we hit the paddle on the right side while we are moving right
         elseif self.ball.x > self.paddle.x + (self.paddle.width / 2) and self.paddle.dx > 0 then
-        self.ball.dx = 50 + (8 * math.abs(self.paddle.x + self.paddle.width / 2 - self.ball.x))
+            self.ball.dx = 50 + (8 * math.abs(self.paddle.x + self.paddle.width / 2 - self.ball.x))
         end
 
         -- Play paddle hit sound
-        gSounds['wall-hit']:play()
+        gSounds['paddle-hit']:play()
     end
 
     -- Detect collision across all bricks with the ball
@@ -60,9 +60,22 @@ function PlayState:update(dt)
 
             -- Add to score
             self.score = self.score + (brick.tier * 200 + brick.color * 25)
-            
-            -- Trigger bricks hit function
+
+            -- Trigger the bricks hit function, which removes it from play
             brick:hit()
+
+            -- Go to victory state if there are no more bricks left
+            if self:checkVictory() then
+                gSounds['victory']:play()
+
+                gStateMachine:change('victory', {
+                    level = self.level,
+                    paddle = self.paddle,
+                    health = self.health,
+                    score = self.score,
+                    ball = self.ball
+                })
+            end
 
             -- collision code for bricks
             -- left edge; only check if we're moving right
@@ -87,10 +100,10 @@ function PlayState:update(dt)
             else
                 -- flip y velocity and reset position outside 
                 self.ball.dy = -self.ball.dy
-                self.ball.x = brick.y + 16
+                self.ball.y = brick.y + 16
             end
 
-            -- Slightly scale the y velocity to sepped uo the game
+            -- Slightly scale the y velocity to speed up the game
             self.ball.dy = self.ball.dy * 1.02
             -- Only allow colliding with 1 brick    
             break
@@ -116,9 +129,23 @@ function PlayState:update(dt)
         end
     end
 
+    for k, brick in pairs(self.bricks) do
+        brick:update(dt)
+    end
+    
     if love.keyboard.wasPressed('escape') then
         love.event.quit()
     end
+end
+
+function PlayState:checkVictory()
+    for k, brick in pairs(self.bricks) do
+        if brick.inPlay then
+            return false
+        end
+    end
+
+    return true
 end
 
 function PlayState:render()
@@ -131,6 +158,11 @@ function PlayState:render()
     -- Render bricks
     for k, brick in pairs(self.bricks) do
         brick:render()
+    end
+
+    -- Render particles
+    for k, brick in pairs(self.bricks) do
+        brick:renderParticles()
     end
 
     -- Pause text (if paused)

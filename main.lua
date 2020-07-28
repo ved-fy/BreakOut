@@ -42,7 +42,8 @@ function love.load()
         ['brick-hit'] = love.audio.newSource('sounds/brick-hit-1.wav', 'static'),
         ['brick-destroyed'] = love.audio.newSource('sounds/brick-hit-2.wav', 'static'),
         ['select'] = love.audio.newSource('sounds/select.wav', 'static'),
-        ['hurt'] = love.audio.newSource('sounds/hurt.wav', 'static')
+        ['hurt'] = love.audio.newSource('sounds/hurt.wav', 'static'),
+        ['victory'] = love.audio.newSource('sounds/victory.wav', 'static')
     }
 
     -- Initializing virtual resolution
@@ -59,7 +60,8 @@ function love.load()
         ['start'] = function() return StartState() end,
         ['serve'] = function() return ServeState() end,
         ['play'] = function() return PlayState() end,
-        ['game-over'] = function() return GameOverState() end
+        ['game-over'] = function() return GameOverState() end,
+        ['victory'] = function() return Victory() end
     } 
     gStateMachine:change('start')
 

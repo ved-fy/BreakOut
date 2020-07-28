@@ -1,7 +1,7 @@
 Paddle = Class{}
 
 function Paddle:init(skin)
-    self.x = VIRTUAL_WIDTH / 2 - 32;
+    self.x = VIRTUAL_WIDTH / 2 - 32
     self.y = VIRTUAL_HEIGHT - 32
 
     -- Starting vellocity 
