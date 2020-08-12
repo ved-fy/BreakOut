@@ -8,6 +8,9 @@ function PlayState:enter(params)
     self.bricks = params.bricks
     self.health = params.health
     self.score = params.score
+    self.highScores = params.highScores
+    self.level = params.level
+    self.recoverPoints = params.recoverPoints
 
     -- Give ball random starting vellocity
     self.ball.dx = math.random(-200, 200)
@@ -64,6 +67,18 @@ function PlayState:update(dt)
             -- Trigger the bricks hit function, which removes it from play
             brick:hit()
 
+            -- If we have enough points, recover a point of health
+            if self.score > self.recoverPoints then
+                -- cant go above 3 health
+                self.health = math.min(3, self.health + 1)
+
+                -- multiply recover pointes by 2
+                self.recoverPoints = math.min(100000, self.recoverPoints * 2)
+
+                -- Play recover sound
+                gSounds['recover']:play()
+            end
+
             -- Go to victory state if there are no more bricks left
             if self:checkVictory() then
                 gSounds['victory']:play()
@@ -73,6 +88,7 @@ function PlayState:update(dt)
                     paddle = self.paddle,
                     health = self.health,
                     score = self.score,
+                    highScores = self.highScores,
                     ball = self.ball
                 })
             end
@@ -114,17 +130,20 @@ function PlayState:update(dt)
     if self.ball.y >= VIRTUAL_HEIGHT then
         self.health = self.health - 1
         gSounds['hurt']:play()
-
+    
         if self.health == 0 then
             gStateMachine:change('game-over', {
-                score = self.score
+                score = self.score,
+                highScores = self.highScores
             })
         else
             gStateMachine:change('serve', {
                 paddle = self.paddle,
                 bricks = self.bricks,
                 health = self.health,
-                score = self.score
+                score = self.score,
+                highScores = self.highScores,
+                recoverPoints = self.recoverPoints
             })
         end
     end
@@ -164,6 +183,9 @@ function PlayState:render()
     for k, brick in pairs(self.bricks) do
         brick:renderParticles()
     end
+
+    renderScore(self.score)
+    renderHealth(self.health)
 
     -- Pause text (if paused)
     if self.paused then

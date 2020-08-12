@@ -91,24 +91,16 @@ function LevelMaker.createMap(level)
                 b.tier = solidTier
             end
 
-            -- LOGGING --
             table.insert(bricks, b)
-            print ("------BRICK " ..tostring(#bricks).. "------")
-            print ("Tier = " ..tostring(b.tier))
-            print ("Color= " ..tostring(b.color))
-            print ()
-            -- END LOGGING --
-            
+
             --Lua version of the continue statement
             ::continue::
         end
     end
 
     if #bricks == 0 then
-        print ("No bricks created")
         return self.createMap(level)
     else
-        print ("Bricks created")
         return bricks
     end
 end 

@@ -24,17 +24,17 @@ function HighScoreState:render()
     -- Iterate over all high score inices in our high score table
 
     for i = 1, 10 do
-        local name = self.highScoresp[i].name or '----'
+        local name = self.highScores[i].name or '----'
         local score = self.highScores[i].score or '----'
 
         -- Score number (1-10)
-        local.graphics.printf(tostring(i).. '.', VIRTUAL_WIDTH / 4, 60 + i * 13, 50, 'left')
+        love.graphics.printf(tostring(i)..'.', VIRTUAL_WIDTH / 4, 60 + i * 13, 50, 'left')
 
         -- Score name
-        love.graphics.printf(name, VIRTUAL_WIDTH, 4 + 38, 60 + 1 * 13, 100, 'right')
+        love.graphics.printf(name, VIRTUAL_WIDTH / 4 + 38, 60 + i * 13, 100, 'right')
 
         -- Score itself
-        love.graphics.printf(tostring(score), VIRTUAL_WIDTH/2, 60 + i * 13, 100, 'right')
+        love.graphics.printf(tostring(score), VIRTUAL_WIDTH / 2, 60 + i * 13, 100, 'right')
     end
 
     love.graphics.setFont(gFonts['small'])

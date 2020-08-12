@@ -32,7 +32,8 @@ function love.load()
         ['paddles'] = GenerateQuadsPaddle(gTextures['main']),
         ['balls'] = GenerateQuadsBalls(gTextures['main']),
         ['bricks'] = GenerateQuadsBricks(gTextures['main']),
-        ['hearts'] = GenerateQuads(gTextures['hearts'], 10, 9)
+        ['hearts'] = GenerateQuads(gTextures['hearts'], 10, 9),
+        ['arrows'] = GenerateQuads(gTextures['arrows'], 24, 24)
     }
 
     -- Set up table for sound effects
@@ -43,7 +44,14 @@ function love.load()
         ['brick-destroyed'] = love.audio.newSource('sounds/brick-hit-2.wav', 'static'),
         ['select'] = love.audio.newSource('sounds/select.wav', 'static'),
         ['hurt'] = love.audio.newSource('sounds/hurt.wav', 'static'),
-        ['victory'] = love.audio.newSource('sounds/victory.wav', 'static')
+        ['victory'] = love.audio.newSource('sounds/victory.wav', 'static'),
+        ['no-select'] = love.audio.newSource('sounds/no-select.wav', 'static'),
+        ['confirm'] = love.audio.newSource('sounds/confirm.wav', 'static'),
+        ['high-score'] = love.audio.newSource('sounds/high_score.wav', 'static'),
+        ['recover'] = love.audio.newSource('sounds/recover.wav', 'static'),
+        ['pause'] = love.audio.newSource('sounds/pause.wav', 'static'),
+
+        ['music'] = love.audio.newSource('sounds/music.wav', 'static')
     }
 
     -- Initializing virtual resolution
@@ -52,18 +60,24 @@ function love.load()
         fullscreen = false,
         resizable = true
     })
-    -- Loading sounds
-    ----------------------------- TODO ----------------------
 
     -- Initializing a state machine
     gStateMachine = StateMachine {
         ['start'] = function() return StartState() end,
+        ['paddle-select'] = function() return PaddleSelectState() end,
+        ['high-scores'] = function() return HighScoreState() end,
         ['serve'] = function() return ServeState() end,
         ['play'] = function() return PlayState() end,
         ['game-over'] = function() return GameOverState() end,
-        ['victory'] = function() return Victory() end
+        ['victory'] = function() return VictoryState() end,
+        ['enter-highscore'] = function() return EnterHighScoreState() end
     } 
-    gStateMachine:change('start')
+    gStateMachine:change('start', {
+        highScores = loadHighScores()
+    })
+
+    gSounds['music']:play()
+    gSounds['music']:setLooping(true)
 
     -- Table used to store keys that are pressed this frame. Love doesnt allow us to check inputs
     -- from other fucntions
@@ -139,4 +153,50 @@ function renderScore(score)
     love.graphics.setFont(gFonts['small'])
     love.graphics.print('Score:', VIRTUAL_WIDTH - 60, 5)
     love.graphics.printf(tostring(score), VIRTUAL_WIDTH - 50, 5, 40, 'right')
+end
+
+-- Loads high scores from a .lst file, saved in Love2D's default save directory
+function loadHighScores()
+    love.filesystem.setIdentity('breakout')
+
+    -- If the file doesnt exist, initialize it with some default scores
+    dir = love.filesystem.getSaveDirectory()
+    if not love.filesystem.getInfo('breakout.lst') then
+        local scores = ''
+        for i = 10, 1, -1 do
+            scores = scores .. 'VED\n'
+            scores = scores .. tostring(i * 10000) .. '\n'
+        end
+
+        love.filesystem.write('breakout.lst', scores)
+    end
+
+    -- Flag for whether we're reading a name or not
+    local name = true
+    local currentName = nil
+    local counter = 1
+
+    -- Initialize scores table with at least 10 blank entries
+    local scores = {}
+
+    for i = 1, 10 do
+        scores[i] = {
+            name = nil,
+            score = nil
+        }
+    end
+    -- Iterate over each line in the file, filling in names and scores
+    for line in love.filesystem.lines('breakout.lst') do
+        if name then
+            scores[counter].name = string.sub(line, 1, 3)
+        else
+            scores[counter].score = tonumber(line)
+            counter = counter + 1
+        end
+
+        -- Flip the name flag
+        name = not name
+    end
+
+    return scores       
 end
